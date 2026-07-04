@@ -1,12 +1,4 @@
-/*
- * fcyc.c - Estimate the time (in CPU cycles) used by a function f 
- * 
- * Copyright (c) 2002, R. Bryant and D. O'Hallaron, All rights reserved.
- * May not be used, modified, or copied without permission.
- *
- * Uses the cycle timer routines in clock.c to estimate the
- * the time in CPU cycles for a function f.
- */
+
 #include <stdlib.h>
 #include <sys/times.h>
 #include <stdio.h>
@@ -14,14 +6,13 @@
 #include "fcyc.h"
 #include "clock.h"
 
-/* Default values */
-#define K 3                  /* Value of K in K-best scheme */
-#define MAXSAMPLES 20        /* Give up after MAXSAMPLES */
-#define EPSILON 0.01         /* K samples should be EPSILON of each other*/
-#define COMPENSATE 0         /* 1-> try to compensate for clock ticks */
-#define CLEAR_CACHE 0        /* Clear cache before running test function */
-#define CACHE_BYTES (1<<19)  /* Max cache size in bytes */
-#define CACHE_BLOCK 32       /* Cache block size in bytes */
+#define K 3                  
+#define MAXSAMPLES 20        
+#define EPSILON 0.01         
+#define COMPENSATE 0         
+#define CLEAR_CACHE 0        
+#define CACHE_BYTES (1<<19)  
+#define CACHE_BLOCK 32       
 
 static int kbest = K;
 static int maxsamples = MAXSAMPLES;
@@ -36,7 +27,6 @@ static int *cache_buf = NULL;
 static double *values = NULL;
 static int samplecount = 0;
 
-/* for debugging only */
 #define KEEP_VALS 0
 #define KEEP_SAMPLES 0
 
@@ -44,9 +34,7 @@ static int samplecount = 0;
 static double *samples = NULL;
 #endif
 
-/* 
- * init_sampler - Start new sampling process 
- */
+
 static void init_sampler()
 {
     if (values)
@@ -55,15 +43,13 @@ static void init_sampler()
 #if KEEP_SAMPLES
     if (samples)
 	free(samples);
-    /* Allocate extra for wraparound analysis */
+    
     samples = calloc(maxsamples+kbest, sizeof(double));
 #endif
     samplecount = 0;
 }
 
-/* 
- * add_sample - Add new sample  
- */
+
 static void add_sample(double val)
 {
     int pos = 0;
@@ -78,7 +64,6 @@ static void add_sample(double val)
     samples[samplecount] = val;
 #endif
     samplecount++;
-    /* Insertion sort */
     while (pos > 0 && values[pos-1] > values[pos]) {
 	double temp = values[pos-1];
 	values[pos-1] = values[pos];
@@ -87,9 +72,6 @@ static void add_sample(double val)
     }
 }
 
-/* 
- * has_converged- Have kbest minimum measurements converged within epsilon? 
- */
 static int has_converged()
 {
     return
@@ -97,9 +79,7 @@ static int has_converged()
 	((1 + epsilon)*values[0] >= values[kbest-1]);
 }
 
-/* 
- * clear - Code to clear cache 
- */
+
 static volatile int sink = 0;
 
 static void clear()
@@ -123,9 +103,7 @@ static void clear()
     sink = x;
 }
 
-/*
- * fcyc - Use K-best scheme to estimate the running time of function f
- */
+
 double fcyc(test_funct f, void *argp)
 {
     double result;
@@ -168,24 +146,13 @@ double fcyc(test_funct f, void *argp)
 }
 
 
-/*************************************************************
- * Set the various parameters used by the measurement routines 
- ************************************************************/
 
-/* 
- * set_fcyc_clear_cache - When set, will run code to clear cache 
- *     before each measurement. 
- *     Default = 0
- */
 void set_fcyc_clear_cache(int clear)
 {
     clear_cache = clear;
 }
 
-/* 
- * set_fcyc_cache_size - Set size of cache to use when clearing cache 
- *     Default = 1<<19 (512KB)
- */
+
 void set_fcyc_cache_size(int bytes)
 {
     if (bytes != cache_bytes) {
@@ -197,49 +164,31 @@ void set_fcyc_cache_size(int bytes)
     }
 }
 
-/* 
- * set_fcyc_cache_block - Set size of cache block 
- *     Default = 32
- */
+
 void set_fcyc_cache_block(int bytes) {
     cache_block = bytes;
 }
 
 
-/* 
- * set_fcyc_compensate- When set, will attempt to compensate for 
- *     timer interrupt overhead 
- *     Default = 0
- */
+
 void set_fcyc_compensate(int compensate_arg)
 {
     compensate = compensate_arg;
 }
 
-/* 
- * set_fcyc_k - Value of K in K-best measurement scheme
- *     Default = 3
- */
+
 void set_fcyc_k(int k)
 {
     kbest = k;
 }
 
-/* 
- * set_fcyc_maxsamples - Maximum number of samples attempting to find 
- *     K-best within some tolerance.
- *     When exceeded, just return best sample found.
- *     Default = 20
- */
+
 void set_fcyc_maxsamples(int maxsamples_arg)
 {
     maxsamples = maxsamples_arg;
 }
 
-/* 
- * set_fcyc_epsilon - Tolerance required for K-best
- *     Default = 0.01
- */
+
 void set_fcyc_epsilon(double epsilon_arg)
 {
     epsilon = epsilon_arg;

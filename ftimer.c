@@ -1,25 +1,12 @@
-/*
- * ftimer.c - Estimate the time (in seconds) used by a function f 
- * 
- * Copyright (c) 2002, R. Bryant and D. O'Hallaron, All rights reserved.
- * May not be used, modified, or copied without permission.
- *
- * Function timers that estimate the running time (in seconds) of a function f.
- *    ftimer_itimer: version that uses the interval timer
- *    ftimer_gettod: version that uses gettimeofday
- */
+
 #include <stdio.h>
 #include <sys/time.h>
 #include "ftimer.h"
 
-/* function prototypes */
 static void init_etime(void);
 static double get_etime(void);
 
-/* 
- * ftimer_itimer - Use the interval timer to estimate the running time
- * of f(argp). Return the average of n runs.  
- */
+
 double ftimer_itimer(ftimer_test_funct f, void *argp, int n)
 {
     double start, tmeas;
@@ -33,10 +20,7 @@ double ftimer_itimer(ftimer_test_funct f, void *argp, int n)
     return tmeas / n;
 }
 
-/* 
- * ftimer_gettod - Use gettimeofday to estimate the running time of
- * f(argp). Return the average of n runs.  
- */
+
 double ftimer_gettod(ftimer_test_funct f, void *argp, int n)
 {
     int i;
@@ -53,19 +37,13 @@ double ftimer_gettod(ftimer_test_funct f, void *argp, int n)
 }
 
 
-/*
- * Routines for manipulating the Unix interval timer
- */
 
-/* The initial value of the interval timer */
 #define MAX_ETIME 86400   
 
-/* static variables that hold the initial value of the interval timer */
-static struct itimerval first_u; /* user time */
-static struct itimerval first_r; /* real time */
-static struct itimerval first_p; /* prof time*/
+static struct itimerval first_u; 
+static struct itimerval first_r; 
+static struct itimerval first_p; 
 
-/* init the timer */
 static void init_etime(void)
 {
     first_u.it_interval.tv_sec = 0;
@@ -87,7 +65,6 @@ static void init_etime(void)
     setitimer(ITIMER_PROF, &first_p, NULL);
 }
 
-/* return elapsed real seconds since call to init_etime */
 static double get_etime(void) {
     struct itimerval v_curr;
     struct itimerval r_curr;

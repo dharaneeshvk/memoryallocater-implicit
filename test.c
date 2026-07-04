@@ -27,7 +27,7 @@ int main() {
     mm_free(p4);
     mm_free(p5);
     void *p6 = mm_malloc(60);
-    printf("p6 = %p, p4 = %p (should be equal)\n", p6, p4);
+    printf("p6 = %p, p4 = %p \n", p6, p4);
 
     mem_init();
     mm_init();
