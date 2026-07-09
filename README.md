@@ -13,7 +13,7 @@ Manages raw heap memory the same way malloc/free works at low level in real syst
 - Built on top of mem_sbrk (simulated heap)
 
 ## Performance
-- Phase 1 (implicit free list) i got " 1272750 ops/sec"
+- Phase 1 (implicit free list) i got " 1323977 ops/sec"
 
 ## Build and Run
 gcc -Wall -O2 -m32 -o test test.c mm.c memlib.c
