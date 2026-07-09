@@ -1,6 +1,4 @@
-/****************************
- * High-level timing wrappers
- ****************************/
+
 #include <stdio.h>
 #include "fsecs.h"
 #include "fcyc.h"
@@ -39,9 +37,7 @@ void init_fsecs(void)
 #endif
 }
 
-/*
- * fsecs - Return the running time of a function f (in seconds)
- */
+
 double fsecs(fsecs_test_funct f, void *argp) 
 {
 #if USE_FCYC

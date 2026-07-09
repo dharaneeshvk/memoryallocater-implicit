@@ -35,6 +35,24 @@
 
 #define SIZE_T_SIZE (ALIGN(sizeof(size_t)))
 
+team_t team = {
+    "IIITK29",
+    "Dharaneesh Kumar",
+    "dharaneeshkumarvk2007@gmail.com",
+    "systemsengineer",
+    "tamilnadu"
+};
+/* Explicit free list macros  */
+
+#define PRED_PTR(bp) ((char *)(bp))
+#define SUCC_PTR(bp) ((char *)(bp) + WSIZE)
+
+#define GET_PRED(bp) (*(char **)(bp))
+#define GET_SUCC(bp) (*(char **)((char *)(bp) + WSIZE))
+
+#define SET_PRED(bp, ptr) (*(char **)(bp) = (ptr))
+#define SET_SUCC(bp, ptr) (*(char **)((char *)(bp) + WSIZE) = (ptr))
+
 
 static void *extend_heap(size_t words);
 static void *coalesce(void *bp);
@@ -42,6 +60,8 @@ static void *find_fit(size_t asize);
 static void place(void *bp, size_t asize);
 
 void *heap_listp;
+
+static char *free_listp = NULL; 
 
 int mm_init(void)
 {
@@ -54,9 +74,36 @@ int mm_init(void)
     PUT(heap_listp + (3*WSIZE), PACK(0, 1)); 
     heap_listp += (2*WSIZE);
 
+    free_listp = NULL; 
+
     if (extend_heap(CHUNKSIZE/WSIZE) == NULL) return -1;
 
     return 0;
+}
+
+static void insert_free_block(void *bp)
+{
+    SET_SUCC(bp, free_listp);
+    SET_PRED(bp, NULL);
+
+    if (free_listp != NULL)
+        SET_PRED(free_listp, bp);
+
+    free_listp = bp;
+}
+
+static void remove_free_block(void *bp)
+{
+    void *pred = GET_PRED(bp);
+    void *succ = GET_SUCC(bp);
+
+    if (pred != NULL)
+        SET_SUCC(pred, succ);
+    else
+        free_listp = succ;   
+
+    if (succ != NULL)
+        SET_PRED(succ, pred);
 }
 
 
@@ -86,16 +133,20 @@ static void *extend_heap(size_t words)
  size_t size = GET_SIZE(HDRP(bp));
 
  if (prev_alloc && next_alloc) { 
-    return bp;
+
  }
 
  else if (prev_alloc && !next_alloc) { 
+    remove_free_block(NEXT_BLKP(bp));
+
     size += GET_SIZE(HDRP(NEXT_BLKP(bp)));
     PUT(HDRP(bp), PACK(size, 0));
     PUT(FTRP(bp), PACK(size,0));
  }
 
  else if (!prev_alloc && next_alloc) { 
+     remove_free_block(PREV_BLKP(bp));
+
     size += GET_SIZE(HDRP(PREV_BLKP(bp)));
     PUT(FTRP(bp), PACK(size, 0));
     PUT(HDRP(PREV_BLKP(bp)), PACK(size, 0));
@@ -103,6 +154,8 @@ static void *extend_heap(size_t words)
  }
 
 else { 
+    remove_free_block(PREV_BLKP(bp));
+        remove_free_block(NEXT_BLKP(bp));
     size += GET_SIZE(HDRP(PREV_BLKP(bp))) +
     GET_SIZE(FTRP(NEXT_BLKP(bp)));
     PUT(HDRP(PREV_BLKP(bp)), PACK(size, 0));
@@ -110,6 +163,7 @@ else {
     bp = PREV_BLKP(bp);
  }
 
+    insert_free_block(bp);
 
  return bp;
  }
@@ -117,8 +171,8 @@ else {
  static void *find_fit(size_t asize)
 {
     void *bp;
-    for (bp = heap_listp; GET_SIZE(HDRP(bp)) > 0; bp = NEXT_BLKP(bp)) {
-        if (!GET_ALLOC(HDRP(bp)) && (asize <= GET_SIZE(HDRP(bp))))
+    for (bp = free_listp; bp!=NULL; bp = GET_SUCC(bp)) {
+        if (asize <= GET_SIZE(HDRP(bp)))
             return bp;
     }
     return NULL;
@@ -127,14 +181,19 @@ else {
 static void place(void *bp, size_t asize)
 {
     size_t csize = GET_SIZE(HDRP(bp));
+        remove_free_block(bp);   
+
 
     if ((csize - asize) >= (2*DSIZE)) {
 
         PUT(HDRP(bp), PACK(asize, 1));
         PUT(FTRP(bp), PACK(asize, 1));
-        bp = NEXT_BLKP(bp);
-        PUT(HDRP(bp), PACK(csize-asize, 0));
-        PUT(FTRP(bp), PACK(csize-asize, 0));
+
+
+        void* remainder = NEXT_BLKP(bp);
+        PUT(HDRP(remainder), PACK(csize-asize, 0));
+        PUT(FTRP(remainder), PACK(csize-asize, 0));
+        insert_free_block(remainder);
 
     } 
     else {

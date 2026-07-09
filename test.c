@@ -37,10 +37,10 @@ int main() {
     void *ptrs[1000];
     for (int i = 0; i < 1000; i++)
         ptrs[i] = mm_malloc(rand() % 512 + 1);
-    for (int i = 0; i < 1000; i++)
+    for (int i = 0; i < 1000; i+=2)
         mm_free(ptrs[i]);
-    for (int i = 0; i < 1000; i++)
-        ptrs[i] = mm_malloc(rand() % 512 + 1);
+    for (int i = 0; i < 500; i++)
+        ptrs[i] = mm_malloc(rand() % 200 + 1);
 
     clock_t end = clock();
     double time_taken = ((double)(end - start)) / CLOCKS_PER_SEC;

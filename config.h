@@ -14,6 +14,7 @@
   "binary2-bal.rep",\
   "realloc-bal.rep",\
   "realloc2-bal.rep"
+#define TRACEDIR "./traces/"
 
 
 #define AVG_LIBC_THRUPUT      600E3  
